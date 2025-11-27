@@ -6,7 +6,9 @@ import hashlib
 HOST = '127.0.0.1'
 PORT = 5001
 BUFFER_SIZE = 4096
+
 clientes_conectados = []
+
 def calculaHashSHA256(nome_arquivo):
     h = hashlib.sha256()
     try:
@@ -26,6 +28,7 @@ def lidarCliente (conexao, endereco):
     print(f"[NOVA CONEXÃO] {endereco} conectado.")
     clientes_conectados.append(conexao)
     conexao_ativa = True
+    
     try:
         while conexao_ativa:
             comando_raw = conexao.recv(BUFFER_SIZE).decode('utf-8')
@@ -58,11 +61,13 @@ def lidarCliente (conexao, endereco):
                 elif comando == "CHAT":
                     conexao.sendall("OK CHAT".encode('utf-8'))
                     chat_ativo =  True
+                    broadcast_mensagem(f"[SISTEMA] {endereco[0]} entrou no chat.", remetente=conexao)
                     while chat_ativo:
                         mensagem_cliente = conexao.recv(BUFFER_SIZE).decode('utf-8')
                         if mensagem_cliente and mensagem_cliente.upper() != 'SAIR':
                             print(f"[{endereco} - CHAT] Mensagem: {mensagem_cliente}")
-                            conexao.sendall(f"{mensagem_cliente}".encode('utf-8'))
+                            mensagem_formatada = f"[{endereco[0]}]: {mensagem_cliente}"
+                            broadcast_mensagem(mensagem_formatada, remetente=conexao)
                         else:
                             chat_ativo = False
                             print(f"[{endereco}] Fim do modo CHAT.")
@@ -83,7 +88,8 @@ def broadcast_mensagem(mensagem, remetente=None):
             try:
                 cliente.sendall(f"SERVIDOR {mensagem}".encode('utf-8'))
             except:
-                pass
+                if cliente in clientes_conectados:
+                    clientes_conectados.remove(cliente)
 
 def lidarConsoleServidor():
     while True:
@@ -104,7 +110,7 @@ def iniciarServidor():
         conexao, endereco = servidor.accept()
         thread_cliente = threading.Thread(target=lidarCliente, args=(conexao, endereco))
         thread_cliente.start()
-        print(f"[CONEXÕES ATIVAS] {threading.active_count() - 1}")
+        print(f"[CONEXÕES ATIVAS] {len(clientes_conectados)}")
 
 if __name__ == "__main__":
     iniciarServidor()
