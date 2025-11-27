@@ -7,8 +7,8 @@ PORT = 5001
 BUFFER_SIZE = 4096 
 PASTA_DOWNLOADS = "downloads_cliente"
 
-def calculaHashMD5(nome_arquivo):
-    h = hashlib.md5()
+def calculaHashSHA256(nome_arquivo):
+    h = hashlib.sha256()
     try:
         tamanho_total = os.path.getsize(nome_arquivo)
         
@@ -44,7 +44,7 @@ def solicitarArquivo(cliente_socket, nome_arquivo):
                     bytes_recebidos += len(chunk)
             print(f"[SUCESSO] Arquivo '{nome_arquivo}' baixado para a pasta '{PASTA_DOWNLOADS}'.")
 
-            hash_local = calculaHashMD5(caminho_arquivo_local)
+            hash_local = calculaHashSHA256(caminho_arquivo_local)
             print(f"Hash do servidor: {hash_servidor}")
             print(f"Hash local: {hash_local}")
 

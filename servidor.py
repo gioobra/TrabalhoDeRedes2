@@ -4,11 +4,11 @@ import os
 import hashlib
 
 HOST = '127.0.0.1'
-PORT = 5051
+PORT = 5001
 BUFFER_SIZE = 4096
 
-def calculaHashMD5(nome_arquivo):
-    h = hashlib.md5()
+def calculaHashSHA256(nome_arquivo):
+    h = hashlib.sha256()
     try:
         tamanho_total = os.path.getsize(nome_arquivo)
         
@@ -42,7 +42,7 @@ def lidarCliente (conexao, endereco):
                     
                     if os.path.exists(nome_arquivo):
                         tamanho_arquivo = os.path.getsize(nome_arquivo)
-                        hash_arquivo = calculaHashMD5(nome_arquivo)
+                        hash_arquivo = calculaHashSHA256(nome_arquivo)
 
                         conexao.sendall(f"OK {tamanho_arquivo} {hash_arquivo}".encode('utf-8'))
                         with open (nome_arquivo, 'rb') as f:
