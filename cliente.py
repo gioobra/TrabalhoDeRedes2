@@ -1,11 +1,14 @@
 import socket
 import os
 import hashlib
+import threading
 
 HOST = '127.0.0.1'
 PORT = 5001
 BUFFER_SIZE = 4096 
 PASTA_DOWNLOADS = "downloads_cliente"
+
+recebendo_mensagens = False
 
 def calculaHashSHA256(nome_arquivo):
     h = hashlib.sha256()
@@ -58,25 +61,32 @@ def solicitarArquivo(cliente_socket, nome_arquivo):
         print(f"[ERRO DO SERVIDOR] {resposta}")
 
 def iniciarChat (cliente_socket):
-    cliente_socket.sendall("CHAT".encode('utf-8'))
-    resposta_servidor = cliente_socket.recv(BUFFER_SIZE).decode('utf-8')
-    if resposta_servidor == "OK CHAT":
-        print("\n--- Modo chat Iniciado---")
-        print("Digite 'sair' para voltar ao menu principal.")
-
-        chat_ativo = True
-        while chat_ativo:
-            mensagem = input("Você: ")
-            cliente_socket.sendall(mensagem.encode('utf-8'))
-            
-            if mensagem.upper() == 'SAIR':
-                chat_ativo = False
-            else:
-                resposta_chat = cliente_socket.recv(BUFFER_SIZE).decode('utf-8')
-                print(f"Servidor: {resposta_chat}")
-        print("--- Modo Chat Encerrado ---\n")
-    else:
-        print(f"[ERRO] Não foi possível inicar o modo chat. Repostas: {resposta_servidor}")
+    global recebendo_mensagens
+    try:
+        cliente_socket.sendall("CHAT".encode('utf-8'))
+        resposta_servidor = cliente_socket.recv(BUFFER_SIZE).decode('utf-8')
+        if resposta_servidor == "OK CHAT":
+            print("\n--- Modo chat Iniciado---")
+            print("Digite 'sair' para voltar ao menu principal.")
+            recebendo_mensagens = True
+            t = threading.Thread(target=thread_receber_mensagem, args=(cliente_socket,))
+            t.start()
+            while recebendo_mensagens:
+                mensagem = input("Você: ")
+                
+                if mensagem:
+                    try:
+                        cliente_socket.sendall(mensagem.encode('utf-8'))
+                        if mensagem.upper() == 'SAIR':
+                            recebendo_mensagens = False
+                    except:
+                        recebendo_mensagens = False
+                        break
+            print("--- Modo Chat Encerrado ---\n")
+        else:
+            print(f"[ERRO] Falha ao entrar no chat: {resposta_servidor}")
+    except Exception as e:
+        print(f"[ERRO]{e}")
 
 def thread_receber_mensagem(socket_cliente):
     global recebendo_mensagens

@@ -2,6 +2,7 @@ import socket
 import threading
 import os 
 import hashlib
+import time
 
 HOST = '127.0.0.1'
 PORT = 5001
@@ -60,6 +61,7 @@ def lidarCliente (conexao, endereco):
                         print(f"[{endereco}] Tentativa de acesso a arquivo inexistente: {nome_arquivo}")
                 elif comando == "CHAT":
                     conexao.sendall("OK CHAT".encode('utf-8'))
+                    time.sleep(0.1)
                     chat_ativo =  True
                     broadcast_mensagem(f"[SISTEMA] {endereco[0]} entrou no chat.", remetente=conexao)
                     while chat_ativo:
@@ -87,10 +89,10 @@ def lidarCliente (conexao, endereco):
         conexao.close()  
 
 def broadcast_mensagem(mensagem, remetente=None):
-    for cliente in clientes_conectados:
+    for cliente in clientes_conectados[:]:
         if cliente != remetente:
             try:
-                cliente.sendall(f"SERVIDOR {mensagem}".encode('utf-8'))
+                cliente.sendall(mensagem.encode('utf-8'))
             except:
                 if cliente in clientes_conectados:
                     clientes_conectados.remove(cliente)
