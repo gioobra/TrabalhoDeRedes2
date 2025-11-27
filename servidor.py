@@ -61,7 +61,7 @@ def lidarCliente (conexao, endereco):
                         print(f"[{endereco}] Tentativa de acesso a arquivo inexistente: {nome_arquivo}")
                 elif comando == "CHAT":
                     conexao.sendall("OK CHAT".encode('utf-8'))
-                    time.sleep(0.1)
+                    time.sleep(0.5)
                     chat_ativo =  True
                     broadcast_mensagem(f"[SISTEMA] {endereco[0]} entrou no chat.", remetente=conexao)
                     while chat_ativo:

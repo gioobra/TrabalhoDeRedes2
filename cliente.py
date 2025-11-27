@@ -65,7 +65,7 @@ def iniciarChat (cliente_socket):
     try:
         cliente_socket.sendall("CHAT".encode('utf-8'))
         resposta_servidor = cliente_socket.recv(BUFFER_SIZE).decode('utf-8')
-        if resposta_servidor == "OK CHAT":
+        if "OK CHAT" in resposta_servidor:
             print("\n--- Modo chat Iniciado---")
             print("Digite 'sair' para voltar ao menu principal.")
             recebendo_mensagens = True
