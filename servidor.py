@@ -6,7 +6,7 @@ import hashlib
 HOST = '127.0.0.1'
 PORT = 5001
 BUFFER_SIZE = 4096
-
+clientes_conectados = []
 def calculaHashSHA256(nome_arquivo):
     h = hashlib.sha256()
     try:
@@ -24,6 +24,7 @@ def calculaHashSHA256(nome_arquivo):
 
 def lidarCliente (conexao, endereco):
     print(f"[NOVA CONEXÃO] {endereco} conectado.")
+    clientes_conectados.append(conexao)
     conexao_ativa = True
     try:
         while conexao_ativa:
@@ -76,11 +77,28 @@ def lidarCliente (conexao, endereco):
         print(f"[CONEXÃO FECHADA] Conexão com {endereco} encerrada.")
         conexao.close()
 
+def broadcast_mensagem(mensagem, remetente=None):
+    for cliente in clientes_conectados:
+        if cliente != remetente:
+            try:
+                cliente.sendall(f"SERVIDOR {mensagem}".encode('utf-8'))
+            except:
+                pass
+
+def lidarConsoleServidor():
+    while True:
+        mensagem = input("")
+        if mensagem:
+            print(f"[SERVIDOR] Enviando para todos: {mensagem}")
+            broadcast_mensagem(f"ADMIN: {mensagem}")
+
 def iniciarServidor():
     servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     servidor.bind((HOST, PORT))
     servidor.listen(5)
     print(f"[*] Servidor TCP escutando em {HOST}:{PORT}")
+    thread_console = threading.Thread(target=lidarConsoleServidor)
+    thread_console.start()
 
     while True:
         conexao, endereco = servidor.accept()
