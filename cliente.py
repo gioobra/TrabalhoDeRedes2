@@ -78,6 +78,17 @@ def iniciarChat (cliente_socket):
     else:
         print(f"[ERRO] Não foi possível inicar o modo chat. Repostas: {resposta_servidor}")
 
+def thread_receber_mensagem(socket_cliente):
+    global recebendo_mensagens
+    while recebendo_mensagens:
+        try:
+            msg = socket_cliente.recv(BUFFER_SIZE).decode('utf-8')
+
+            print(f"\r{msg}\nVocê: ", end="")
+        except:
+            break
+
+
 def main():
     cliente_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
