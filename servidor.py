@@ -71,16 +71,20 @@ def lidarCliente (conexao, endereco):
                         else:
                             chat_ativo = False
                             print(f"[{endereco}] Fim do modo CHAT.")
+                            conexao.sendall("SAIR_CONFIRMADO".encode('utf-8'))
                 elif comando == "SAIR":
                     print(f"[{endereco}] Cliente solicitou desconexão.")
                     conexao_ativa = False
-    except ConnectionResetError:
-        print(f"[AVISO] Conexão com {endereco} foi perdida inesperadamente.")
+
     except Exception as e:
         print(f"[ERRO] Ocorreu um erro com o cliente {endereco}: {e}")
     finally:
+        
+        if conexao in clientes_conectados:
+            clientes_conectados.remove(conexao)
+        
         print(f"[CONEXÃO FECHADA] Conexão com {endereco} encerrada.")
-        conexao.close()
+        conexao.close()  
 
 def broadcast_mensagem(mensagem, remetente=None):
     for cliente in clientes_conectados:
@@ -93,10 +97,13 @@ def broadcast_mensagem(mensagem, remetente=None):
 
 def lidarConsoleServidor():
     while True:
-        mensagem = input("")
-        if mensagem:
-            print(f"[SERVIDOR] Enviando para todos: {mensagem}")
-            broadcast_mensagem(f"ADMIN: {mensagem}")
+        try:
+            mensagem = input("")
+            if mensagem:
+                print(f"[VOCÊ -> TODOS]: {mensagem}")
+                broadcast_mensagem(f"ADMIN: {mensagem}")
+        except:
+            pass
 
 def iniciarServidor():
     servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
